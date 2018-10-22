@@ -1,7 +1,6 @@
 package com.hicksteam.tab;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hicksteam.tab.db.gen.tables.pojos.Tab;
 import org.jooq.DSLContext;
 import org.slf4j.Logger;
@@ -10,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.List;
@@ -72,19 +72,17 @@ public class TabsController
         return mav;
     }
 
-    @GetMapping("/search")
-    public String getSearchResults(@RequestParam String query) throws JsonProcessingException
+    @GetMapping(value = "/search", produces = "application/json")
+    @ResponseBody
+    public List<String> getSearchResults(@RequestParam String query) throws JsonProcessingException
     {
         List<Tab> results = create.selectFrom(TAB)
                 .where(TAB.ARTIST.likeIgnoreCase("%" + query + "%"))
                 .or(TAB.TITLE.likeIgnoreCase("%" + query + "%"))
                 .orderBy(TAB.VIEWS.desc()).limit(10).fetchInto(TAB).into(Tab.class);
 
-        List<String> displayResults = results.stream()
+        return results.stream()
                 .map(result -> result.getArtist() + " - " + result.getTitle())
                 .collect(Collectors.toList());
-
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.writeValueAsString(displayResults);
     }
 }

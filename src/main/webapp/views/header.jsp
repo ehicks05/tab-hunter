@@ -31,13 +31,16 @@
             minChars: 2,
             delay: 50,
             source: function (term, suggest) {
-                term = term.toLowerCase();
-                var choices = ['eric', 'eric2', 'eric3', 'eric4','eric5', 'eric6', 'eric', 'eric2', 'eric3', 'eric4','eric5', 'eric6', 'steve', 'steve2'];
-                var matches = [];
-                for (i = 0; i < choices.length; i++)
-                    if (~choices[i].toLowerCase().indexOf(term))
-                        matches.push(choices[i]);
-                suggest(matches);
+
+                fetch("${pageContext.request.contextPath}/search?query=" + term)
+                    .then(function(response) {
+                        return response.json();
+                    })
+                    .then(function(myJson) {
+                        console.log(JSON.stringify(myJson));
+                        suggest(myJson);
+                    });
+
             }
         });
     });
