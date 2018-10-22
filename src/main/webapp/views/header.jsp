@@ -25,14 +25,14 @@
             });
         }
 
-        // initialize
+        // initialize autocomplete
         var my_autoComplete = new autoComplete({
             selector: 'input[id="searchInput"]',
             minChars: 2,
             delay: 50,
             source: function (term, suggest) {
 
-                fetch("${pageContext.request.contextPath}/search?query=" + term)
+                fetch("${pageContext.request.contextPath}/ajaxSearch?query=" + term)
                     .then(function(response) {
                         return response.json();
                     })
@@ -43,7 +43,22 @@
 
             }
         });
+
+        document.getElementById('searchButton').addEventListener('click', function (e) {
+            goToTab();
+        });
+
+        document.getElementById('searchInput').addEventListener('keypress', function (e) {
+            if (event.key === 'Enter')
+                goToTab();
+        });
     });
+
+    function goToTab()
+    {
+        var term = document.getElementById('searchInput').value;
+        location.href = "${pageContext.request.contextPath}/search?query=" + term;
+    }
 </script>
 
 <c:if test="${!empty responseMessage}">
@@ -80,7 +95,7 @@
                             <input id="searchInput" class="input" type="text" placeholder="Find a tab">
                         </p>
                         <p class="control">
-                            <button class="button is-light">
+                            <button id="searchButton" class="button is-primary">
                                 Search
                             </button>
                         </p>

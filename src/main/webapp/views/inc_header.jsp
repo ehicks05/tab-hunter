@@ -35,3 +35,5 @@
 
 <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/auto-complete.css">
 <script src="${pageContext.request.contextPath}/resources/auto-complete.min.js"></script>
+
+<%--<script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.31.0/autocomplete.min.js"></script>--%>

@@ -1,6 +1,5 @@
 package com.hicksteam.tab;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.hicksteam.tab.db.gen.tables.pojos.Tab;
 import org.jooq.DSLContext;
 import org.slf4j.Logger;
@@ -29,7 +28,7 @@ public class TabsController
     }
 
     @GetMapping("/")
-    public ModelAndView showTabs()
+    public ModelAndView showIndex()
     {
         List<Tab> topTenTabs = create.selectFrom(TAB).orderBy(TAB.VIEWS.desc()).limit(10).fetchInto(TAB).into(Tab.class);
 
@@ -72,17 +71,45 @@ public class TabsController
         return mav;
     }
 
-    @GetMapping(value = "/search", produces = "application/json")
+    @GetMapping(value = "/ajaxSearch", produces = "application/json")
     @ResponseBody
-    public List<String> getSearchResults(@RequestParam String query) throws JsonProcessingException
+    public List<String> getAjaxSearchResults(@RequestParam String query)
     {
-        List<Tab> results = create.selectFrom(TAB)
+        return findTabsByQueryString(query).stream()
+                .map(result -> result.getArtist() + " - " + result.getTitle())
+                .collect(Collectors.toList());
+    }
+
+    @GetMapping("/search")
+    public ModelAndView getSearchResults(@RequestParam String query)
+    {
+        if (query.isEmpty())
+            return new ModelAndView("redirect:/");
+
+        List<Tab> results;
+        if (query.contains(" - "))
+        {
+            String queryArtist = query.split(" - ")[0];
+            String queryTitle = query.split(" - ")[1];
+
+            results = create.selectFrom(TAB)
+                    .where(TAB.ARTIST.likeIgnoreCase("%" + queryArtist + "%"))
+                    .and(TAB.TITLE.likeIgnoreCase("%" + queryTitle + "%"))
+                    .orderBy(TAB.VIEWS.desc()).limit(10).fetchInto(TAB).into(Tab.class);
+        }
+        else
+            results = findTabsByQueryString(query);
+
+        ModelAndView mav = new ModelAndView("searchResults");
+        mav.addObject("searchResults", results);
+        return mav;
+    }
+
+    private List<Tab> findTabsByQueryString(@RequestParam String query)
+    {
+        return create.selectFrom(TAB)
                 .where(TAB.ARTIST.likeIgnoreCase("%" + query + "%"))
                 .or(TAB.TITLE.likeIgnoreCase("%" + query + "%"))
                 .orderBy(TAB.VIEWS.desc()).limit(10).fetchInto(TAB).into(Tab.class);
-
-        return results.stream()
-                .map(result -> result.getArtist() + " - " + result.getTitle())
-                .collect(Collectors.toList());
     }
 }
