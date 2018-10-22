@@ -28,10 +28,10 @@ public class TabsController
     @GetMapping("/")
     public ModelAndView showTabs()
     {
-        List<Tab> tabs = create.selectFrom(TAB).orderBy(TAB.ID).fetchInto(TAB).into(Tab.class);
+        List<Tab> topTenTabs = create.selectFrom(TAB).orderBy(TAB.VIEWS.desc()).limit(10).fetchInto(TAB).into(Tab.class);
 
         ModelAndView mav = new ModelAndView("index");
-        mav.addObject("tabs", tabs);
+        mav.addObject("topTenTabs", topTenTabs);
         return mav;
     }
 
