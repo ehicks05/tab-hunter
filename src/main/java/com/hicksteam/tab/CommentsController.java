@@ -1,7 +1,7 @@
-package com.hicksteam.arc;
+package com.hicksteam.tab;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hicksteam.arc.entities.Comment;
+import com.hicksteam.tab.entities.Comment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;

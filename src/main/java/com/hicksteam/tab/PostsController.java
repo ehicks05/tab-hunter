@@ -1,6 +1,6 @@
-package com.hicksteam.arc;
+package com.hicksteam.tab;
 
-import com.hicksteam.arc.entities.Post;
+import com.hicksteam.tab.entities.Post;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;

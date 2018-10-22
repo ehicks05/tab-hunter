@@ -13,6 +13,8 @@ buildscript {
         classpath 'nu.studer:gradle-jooq-plugin:3.0.2'
         classpath 'org.postgresql:postgresql:42.2.5'
         classpath "gradle.plugin.com.boxfuse.client:gradle-plugin-publishing:5.2.0"
+        classpath "com.github.ben-manes:gradle-versions-plugin:0.20.0"
+        classpath "org.ajoberstar.grgit:grgit-gradle:3.0.0-rc.2"
     }
 }
 
@@ -46,7 +48,7 @@ repositories {
 dependencies {
     implementation("org.springframework.boot:spring-boot-devtools")
     implementation('org.springframework.boot:spring-boot-starter-jdbc')
-    implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+//    implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
     implementation('org.springframework.boot:spring-boot-starter-jersey')
     implementation('org.springframework.boot:spring-boot-starter-web')
     implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -58,25 +60,29 @@ dependencies {
     implementation 'org.postgresql:postgresql:42.2.5'
     jooqRuntime 'org.postgresql:postgresql:42.2.5'
 
+    runtime 'org.apache.tomcat.embed:tomcat-embed-jasper'
+    implementation 'javax.servlet.jsp:javax.servlet.jsp-api:2.3.3'
+    implementation 'javax.servlet:jstl:1.2'
+
+
     testImplementation("junit:junit")
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation("org.springframework.security:spring-security-test")
 }
-
 
 ext['jooq.version'] = '3.11.2'
 
 jooq {
     version = '3.11.2'
     edition = 'OSS'
-    
+
     tab(sourceSets.main) {
         jdbc {
             driver = 'org.postgresql.Driver'
             url = 'jdbc:postgresql://localhost:5432/tab'
             user = 'postgres'
             password = 'eric'
-            schema = 'tab'
+            schema = 'public'
         }
         generator {
             name = 'org.jooq.codegen.DefaultGenerator'
@@ -85,7 +91,7 @@ jooq {
             }
             database {
                 name = 'org.jooq.meta.postgres.PostgresDatabase'
-                inputSchema = 'tab'
+                inputSchema = 'public'
                 forcedTypes {
                     forcedType {
                         name = 'varchar'
@@ -118,8 +124,27 @@ flyway {
     url = 'jdbc:postgresql://localhost:5432/tab'
     user = 'postgres'
     password = 'eric'
-    schemas = ['tab']
+    schemas = ['public']
 }
 
 generateTabJooqSchemaSource.dependsOn flywayMigrate
 test.dependsOn flywayClean
+
+// Task to create a version file based on git repo data
+import org.ajoberstar.grgit.*
+import java.time.ZonedDateTime
+
+task versionTxt()  {
+    doLast {
+        Commit head = Grgit.open(dir: '.').head()
+        new File("$projectDir/src/main/resources/version.txt").text =
+                """Application-name: TAB
+Version: 0.0.${Grgit.open(dir: '.').log().size()}
+Revision: ${head.id}
+Revision-Date: ${head.dateTime}
+Author: ${head.author.name} (${head.author.email})
+
+Build-Date: ${ZonedDateTime.now()}
+"""
+    }
+}

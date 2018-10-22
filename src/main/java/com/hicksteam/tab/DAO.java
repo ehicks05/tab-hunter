@@ -1,4 +1,4 @@
-package com.hicksteam.arc;
+package com.hicksteam.tab;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 

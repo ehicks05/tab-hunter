@@ -1,7 +1,7 @@
-package com.hicksteam.arc.entities;
+package com.hicksteam.tab.entities;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.hicksteam.arc.DAO;
+import com.hicksteam.tab.DAO;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 
 import java.util.HashMap;

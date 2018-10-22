@@ -1,4 +1,4 @@
-package com.hicksteam.arc;
+package com.hicksteam.tab;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -26,15 +26,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         PasswordEncoder encoder = new BCryptPasswordEncoder();
         auth.jdbcAuthentication().dataSource(dataSource)
                 .passwordEncoder(encoder)
-                .usersByUsernameQuery("select username, password, enabled from users where username=?")
-                .authoritiesByUsernameQuery("select username, concat('ROLE_',role) from user_roles where username=?");
+                .usersByUsernameQuery("select username, password, enabled from tab_user where username=?")
+                .authoritiesByUsernameQuery("select username, concat('ROLE_',role) from user_role where username=?");
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-                .antMatchers("/", "/home", "/users").permitAll()
+                .antMatchers("/", "/home", "/users", "/resources/**", "/tab").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .formLogin()

@@ -1,4 +1,4 @@
-package com.hicksteam.arc.entities;
+package com.hicksteam.tab.entities;
 
 import org.springframework.jdbc.core.RowMapper;
 

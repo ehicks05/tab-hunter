@@ -1,11 +1,9 @@
-package com.hicksteam.arc.entities;
+package com.hicksteam.tab.entities;
 
-import com.hicksteam.arc.DAO;
-import org.springframework.dao.EmptyResultDataAccessException;
+import com.hicksteam.tab.DAO;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class UserRole
