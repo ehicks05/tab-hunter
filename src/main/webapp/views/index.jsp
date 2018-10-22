@@ -41,7 +41,7 @@
                         <c:forEach var="tab" items="${topTenTabs}" varStatus="loop">
                             <tr>
                                 <td>${loop.count}.</td>
-                                <td>${tab.artist}</td>
+                                <td><a href="${pageContext.request.contextPath}/artist?artist=${tab.artist}">${tab.artist}</a></td>
                                 <td><a href="${pageContext.request.contextPath}/tab?tabId=${tab.id}">${tab.title}</a></td>
                                 <td class="has-text-right"><fmt:formatNumber value="${tab.votes}" pattern="#,###" /></td>
                                 <td class="has-text-right"><fmt:formatNumber value="${tab.rating}" pattern="#.00" /></td>
