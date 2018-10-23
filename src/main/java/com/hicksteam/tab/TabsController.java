@@ -73,28 +73,75 @@ public class TabsController
 
     @GetMapping(value = "/ajaxSearch", produces = "application/json")
     @ResponseBody
-    public List<String> getAjaxSearchResults(@RequestParam String query)
+    public List<AjaxSearchResult> getAjaxSearchResults(@RequestParam String query)
     {
         return findTabsByQueryString(query).stream()
-                .map(result -> result.getArtist() + " - " + result.getTitle())
+                .map(result -> new AjaxSearchResult(result.getArtist(), result.getTitle(), result.getArtist() + " - " + result.getTitle()))
                 .collect(Collectors.toList());
     }
 
-    @GetMapping("/search")
-    public ModelAndView getSearchResults(@RequestParam String query)
+    public class AjaxSearchResult
     {
-        if (query.isEmpty())
+        private String artist;
+        private String title;
+        private String display;
+
+        public AjaxSearchResult(String artist, String title, String display)
+        {
+            this.artist = artist;
+            this.title = title;
+            this.display = display;
+        }
+
+        public String getArtist()
+        {
+            return artist;
+        }
+
+        public void setArtist(String artist)
+        {
+            this.artist = artist;
+        }
+
+        public String getTitle()
+        {
+            return title;
+        }
+
+        public void setTitle(String title)
+        {
+            this.title = title;
+        }
+
+        public String getDisplay()
+        {
+            return display;
+        }
+
+        public void setDisplay(String display)
+        {
+            this.display = display;
+        }
+    }
+
+    @GetMapping("/search")
+    public ModelAndView getSearchResults(@RequestParam String query, @RequestParam String artist, @RequestParam String title)
+    {
+        if (query.isEmpty() && artist.isEmpty() && title.isEmpty())
             return new ModelAndView("redirect:/");
+        
+        if (artist.isEmpty() && title.isEmpty() && query.contains(" - "))
+        {
+            artist = query.split(" - ")[0];
+            title = query.split(" - ")[1];
+        }
 
         List<Tab> results;
-        if (query.contains(" - "))
+        if (!artist.isEmpty() && !title.isEmpty())
         {
-            String queryArtist = query.split(" - ")[0];
-            String queryTitle = query.split(" - ")[1];
-
             results = create.selectFrom(TAB)
-                    .where(TAB.ARTIST.likeIgnoreCase("%" + queryArtist + "%"))
-                    .and(TAB.TITLE.likeIgnoreCase("%" + queryTitle + "%"))
+                    .where(TAB.ARTIST.likeIgnoreCase("%" + artist + "%"))
+                    .and(TAB.TITLE.likeIgnoreCase("%" + title + "%"))
                     .orderBy(TAB.VIEWS.desc()).limit(10).fetchInto(TAB).into(Tab.class);
         }
         else
