@@ -2,9 +2,18 @@
 
 <script>
     var myAC;
-    var artist;
-    var title;
-    
+    var artist = '';
+    var title = '';
+
+    /**
+     * Create string from HTML entities
+     */
+    String.fromHtmlEntities = function(string) {
+        return (string+"").replace(/&#\d+;/gm,function(s) {
+            return String.fromCharCode(s.match(/\d+/gm)[0]);
+        })
+    };
+
     document.addEventListener('DOMContentLoaded', function () {
 
         // Get all "navbar-burger" elements
@@ -48,7 +57,7 @@
                 displayKey: 'display',
                 templates: {
                     suggestion: function(suggestion) {
-                        return suggestion.display;
+                        return String.fromHtmlEntities(suggestion.display);
                     }
                 }
             }
@@ -77,7 +86,9 @@
     function goToTab()
     {
         var term = document.getElementById('searchInput').value;
-        location.href = "${pageContext.request.contextPath}/search?query=" + term + "&artist=" + artist + "&title=" + title;
+        var url = "${pageContext.request.contextPath}/search?query=" + encodeURIComponent(term) + "&artist=" + encodeURIComponent(artist) + "&title=" + encodeURIComponent(title);
+        console.log(url);
+        location.href = url;
     }
 </script>
 
@@ -142,11 +153,11 @@
         </div>
         
         <div class="navbar-menu" id="navMenu">
-            <div class="navbar-start">
-                <div class="navbar-item">
-                    <div class="field has-addons autocomplete">
-                        <p class="control">
-                            <input id="searchInput" class="input" type="text" placeholder="Find a tab">
+            <div class="navbar-start" style="flex-grow: 1; flex-shrink: 1;">
+                <div class="navbar-item is-expanded">
+                    <div class="field has-addons" style="flex-grow: 1; flex-shrink: 1;">
+                        <p class="control" style="flex-grow: 1; flex-shrink: 1;">
+                            <input id="searchInput" class="input is-expanded is-fullwidth" type="text" placeholder="Find a tab">
                         </p>
                         <p class="control">
                             <button id="searchButton" class="button is-primary">

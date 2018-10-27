@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-import java.util.stream.IntStream;
 
 import static com.hicksteam.tab.db.gen.Tables.TAB_USER;
 import static com.hicksteam.tab.db.gen.Tables.USER_ROLE;
@@ -88,17 +87,13 @@ public class Application
         List<String> types = Arrays.asList("chords", "guitar", "bass");
 
         Random random = new Random();
-        IntStream.range(0, 20).forEach(i -> {
-            int id = i + 1;
-            String artist = "artist" + id;
-            String title = "title" + id;
-            String content = "content" + id;
-            if (i < records.size())
-            {
-                artist = records.get(i).get(0);
-                title = records.get(i).get(1);
-                content = records.get(i).get(2);
-            }
+        records.forEach(record -> {
+            int index = records.indexOf(record);
+            int id = index + 1;
+
+            String artist = records.get(index).get(0);
+            String title = records.get(index).get(1);
+            String content = records.get(index).get(2);
 
             TabRecord aTab = create.selectFrom(TAB).where(TAB.ID.eq(id)).fetchAny();
             if (aTab == null)
@@ -114,6 +109,8 @@ public class Application
                 aTab.setVersion(random.nextInt(10));
                 aTab.setType(types.get(random.nextInt(types.size())));
                 aTab.setViews(0);
+                aTab.setSource("dummy data");
+                aTab.setContentHash(content.hashCode());
                 aTab.store();
             }
         });

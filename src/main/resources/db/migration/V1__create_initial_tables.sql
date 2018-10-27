@@ -16,18 +16,20 @@ CREATE TABLE user_role (
 );
 
 create table tab (
-  id         serial    NOT null,
-  artist     text      NOT null,
-  title      text      NOT null,
-  content    text      NOT null,
-  author_id  bigint    NOT null,
-  votes      int       NOT null,
-  rating     float     NOT null,
-  type       text      NOT null,
-  version    int       NOT null,
-  created_on timestamp NOT null,
-  views      int       NOT null,
-  tuning     text,
+  id           serial    NOT null,
+  artist       text      NOT null,
+  title        text      NOT null,
+  content      text      NOT null,
+  author_id    bigint    NOT null,
+  votes        int       NOT null,
+  rating       float     NOT null,
+  type         text      NOT null,
+  version      int       NOT null,
+  created_on   timestamp NOT null,
+  views        int       NOT null,
+  tuning       text,
+  source       text,
+  content_hash int       NOT null,
   primary key (id)
 );
 

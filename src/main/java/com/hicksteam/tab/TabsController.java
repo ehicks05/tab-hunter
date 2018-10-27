@@ -30,10 +30,22 @@ public class TabsController
     @GetMapping("/")
     public ModelAndView showIndex()
     {
-        List<Tab> topTenTabs = create.selectFrom(TAB).orderBy(TAB.VIEWS.desc()).limit(10).fetchInto(TAB).into(Tab.class);
+        List<Tab> tabs = create.selectFrom(TAB).orderBy(TAB.VIEWS.desc()).limit(10).fetchInto(TAB).into(Tab.class);
 
         ModelAndView mav = new ModelAndView("index");
-        mav.addObject("topTenTabs", topTenTabs);
+        mav.addObject("title", "Top 10 Tabs");
+        mav.addObject("tabs", tabs);
+        return mav;
+    }
+
+    @GetMapping("/all")
+    public ModelAndView showAll()
+    {
+        List<Tab> tabs = create.selectFrom(TAB).orderBy(TAB.VIEWS.desc()).fetchInto(TAB).into(Tab.class);
+
+        ModelAndView mav = new ModelAndView("index");
+        mav.addObject("title", "All Tabs");
+        mav.addObject("tabs", tabs);
         return mav;
     }
 
@@ -63,11 +75,12 @@ public class TabsController
     @GetMapping("/artist")
     public ModelAndView showArtistTabs(@RequestParam String artist)
     {
-        List<Tab> artistTabs = create.selectFrom(TAB).where(TAB.ARTIST.eq(artist))
-                .orderBy(TAB.VIEWS.desc()).limit(10).fetchInto(TAB).into(Tab.class);
+        List<Tab> tabs = create.selectFrom(TAB).where(TAB.ARTIST.eq(artist))
+                .orderBy(TAB.VIEWS.desc()).fetchInto(TAB).into(Tab.class);
 
-        ModelAndView mav = new ModelAndView("artist");
-        mav.addObject("artistTabs", artistTabs);
+        ModelAndView mav = new ModelAndView("index");
+        mav.addObject("title", artist);
+        mav.addObject("tabs", tabs);
         return mav;
     }
 
@@ -147,13 +160,15 @@ public class TabsController
         else
             results = findTabsByQueryString(query);
 
-        ModelAndView mav = new ModelAndView("searchResults");
-        mav.addObject("searchResults", results);
+        ModelAndView mav = new ModelAndView("index");
+        mav.addObject("title", "Search Results");
+        mav.addObject("tabs", results);
         return mav;
     }
 
     private List<Tab> findTabsByQueryString(@RequestParam String query)
     {
+        
         return create.selectFrom(TAB)
                 .where(TAB.ARTIST.likeIgnoreCase("%" + query + "%"))
                 .or(TAB.TITLE.likeIgnoreCase("%" + query + "%"))
