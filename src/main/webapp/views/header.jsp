@@ -3,7 +3,7 @@
 <script>
     var myAC;
     var artist = '';
-    var title = '';
+    var name = '';
 
     /**
      * Create string from HTML entities
@@ -64,7 +64,7 @@
         ]).on('autocomplete:selected', function(event, suggestion, dataset) {
             console.log(suggestion, dataset);
             artist = suggestion.artist;
-            title = suggestion.title;
+            name = suggestion.name;
         });
 
         document.getElementById('searchButton').addEventListener('click', function (e) {
@@ -77,7 +77,7 @@
             else
             {
                 artist = '';
-                title = '';
+                name = '';
             }
 
         });
@@ -86,7 +86,9 @@
     function goToTab()
     {
         var term = document.getElementById('searchInput').value;
-        var url = "${pageContext.request.contextPath}/search?query=" + encodeURIComponent(term) + "&artist=" + encodeURIComponent(artist) + "&title=" + encodeURIComponent(title);
+        var url = "${pageContext.request.contextPath}/search?query=" + encodeURIComponent(term) +
+            "&artist=" + encodeURIComponent(artist) +
+            "&name=" + encodeURIComponent(name);
         console.log(url);
         location.href = url;
     }

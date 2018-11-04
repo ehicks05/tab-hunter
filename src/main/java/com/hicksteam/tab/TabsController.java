@@ -1,6 +1,9 @@
 package com.hicksteam.tab;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hicksteam.tab.db.gen.tables.pojos.Tab;
+import com.hicksteam.tab.importLogic.UGSTab;
 import org.jooq.DSLContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +14,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.hicksteam.tab.db.gen.Tables.TAB;
@@ -21,16 +29,19 @@ public class TabsController
 {
     private static final Logger log = LoggerFactory.getLogger(TabsController.class);
     private DSLContext create;
+    private TabLogic tabLogic;
+    private static final int RESULT_SIZE = 50;
 
-    public TabsController(DSLContext create)
+    public TabsController(DSLContext create, TabLogic tabLogic)
     {
         this.create = create;
+        this.tabLogic = tabLogic;
     }
 
     @GetMapping("/")
     public ModelAndView showIndex()
     {
-        List<Tab> tabs = create.selectFrom(TAB).orderBy(TAB.VIEWS.desc()).limit(10).fetchInto(TAB).into(Tab.class);
+        List<Tab> tabs = create.selectFrom(TAB).orderBy(TAB.VIEWS.desc()).limit(RESULT_SIZE).fetchInto(TAB).into(Tab.class);
 
         ModelAndView mav = new ModelAndView("index");
         mav.addObject("title", "Top 10 Tabs");
@@ -50,11 +61,11 @@ public class TabsController
     }
 
     @GetMapping("/tab")
-    public ModelAndView showTab(@RequestParam int tabId)
+    public ModelAndView showTab(@RequestParam int tabHash)
     {
         ModelAndView mav = new ModelAndView("tab");
 
-        Tab tab = create.selectFrom(TAB).where(TAB.ID.eq(tabId)).fetchAny().into(Tab.class);
+        Tab tab = create.selectFrom(TAB).where(TAB.HASH.eq(tabHash)).fetchAny().into(Tab.class);
         if (tab == null)
         {
             log.error("couldn't find tab.");
@@ -66,7 +77,7 @@ public class TabsController
 
             create.update(TAB)
                     .set(TAB.VIEWS, TAB.VIEWS.add(1))
-                    .where(TAB.ID.eq(tabId))
+                    .where(TAB.HASH.eq(tabHash))
                     .execute();
         }
         return mav;
@@ -89,21 +100,36 @@ public class TabsController
     public List<AjaxSearchResult> getAjaxSearchResults(@RequestParam String query)
     {
         return findTabsByQueryString(query).stream()
-                .map(result -> new AjaxSearchResult(result.getArtist(), result.getTitle(), result.getArtist() + " - " + result.getTitle()))
-                .collect(Collectors.toList());
+                .map(result -> new AjaxSearchResult(result.getArtist(), result.getName(), result.getArtist() + " - " + result.getName()))
+                .distinct().collect(Collectors.toList());
     }
 
     public class AjaxSearchResult
     {
         private String artist;
-        private String title;
+        private String name;
         private String display;
 
-        public AjaxSearchResult(String artist, String title, String display)
+        public AjaxSearchResult(String artist, String name, String display)
         {
             this.artist = artist;
-            this.title = title;
+            this.name = name;
             this.display = display;
+        }
+
+        @Override
+        public boolean equals(Object o)
+        {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            AjaxSearchResult that = (AjaxSearchResult) o;
+            return Objects.equals(display, that.display);
+        }
+
+        @Override
+        public int hashCode()
+        {
+            return Objects.hash(display);
         }
 
         public String getArtist()
@@ -116,14 +142,14 @@ public class TabsController
             this.artist = artist;
         }
 
-        public String getTitle()
+        public String getName()
         {
-            return title;
+            return name;
         }
 
-        public void setTitle(String title)
+        public void setName(String name)
         {
-            this.title = title;
+            this.name = name;
         }
 
         public String getDisplay()
@@ -138,24 +164,27 @@ public class TabsController
     }
 
     @GetMapping("/search")
-    public ModelAndView getSearchResults(@RequestParam String query, @RequestParam String artist, @RequestParam String title)
+    public ModelAndView getSearchResults(@RequestParam String query, @RequestParam(required = false) String artist, @RequestParam(required = false) String name)
     {
-        if (query.isEmpty() && artist.isEmpty() && title.isEmpty())
+        if (artist == null) artist = "";
+        if (name == null) name = "";
+        
+        if (query.isEmpty() && artist.isEmpty() && name.isEmpty())
             return new ModelAndView("redirect:/");
         
-        if (artist.isEmpty() && title.isEmpty() && query.contains(" - "))
+        if (artist.isEmpty() && name.isEmpty() && query.contains(" - "))
         {
             artist = query.split(" - ")[0];
-            title = query.split(" - ")[1];
+            name = query.split(" - ")[1];
         }
 
         List<Tab> results;
-        if (!artist.isEmpty() && !title.isEmpty())
+        if (!artist.isEmpty() && !name.isEmpty())
         {
             results = create.selectFrom(TAB)
                     .where(TAB.ARTIST.likeIgnoreCase("%" + artist + "%"))
-                    .and(TAB.TITLE.likeIgnoreCase("%" + title + "%"))
-                    .orderBy(TAB.VIEWS.desc()).limit(10).fetchInto(TAB).into(Tab.class);
+                    .and(TAB.NAME.likeIgnoreCase("%" + name + "%"))
+                    .orderBy(TAB.VIEWS.desc()).limit(RESULT_SIZE).fetchInto(TAB).into(Tab.class);
         }
         else
             results = findTabsByQueryString(query);
@@ -171,7 +200,54 @@ public class TabsController
         
         return create.selectFrom(TAB)
                 .where(TAB.ARTIST.likeIgnoreCase("%" + query + "%"))
-                .or(TAB.TITLE.likeIgnoreCase("%" + query + "%"))
-                .orderBy(TAB.VIEWS.desc()).limit(10).fetchInto(TAB).into(Tab.class);
+                .or(TAB.NAME.likeIgnoreCase("%" + query + "%"))
+                .orderBy(TAB.VIEWS.desc()).limit(RESULT_SIZE).fetchInto(TAB).into(Tab.class);
     }
+
+    @GetMapping("/admin")
+    public ModelAndView showAdmin()
+    {
+        ModelAndView mav = new ModelAndView("admin");
+        return mav;
+    }
+
+    @GetMapping("/admin/search")
+    public ModelAndView adminSearch(@RequestParam String query)
+    {
+        ModelAndView mav = new ModelAndView("redirect:/search?query=" + query);
+
+        ProcessBuilder processBuilder = new ProcessBuilder("node", "c:/projects/ugs/index.js", query);
+        try
+        {
+            Process p = processBuilder.start();
+            OutputStream processIn = p.getOutputStream();
+            InputStream processOut = p.getInputStream();
+
+            StringBuilder sb = new StringBuilder();
+            byte[] bytes = new byte[4096];
+            while (processOut.read(bytes) != -1)
+            {
+                sb.append(new String(bytes, Charset.forName("UTF-8")));
+            }
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
+            objectMapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
+
+            UGSTab[] ugsTabs = objectMapper.readValue(sb.toString(), UGSTab[].class);
+            for (UGSTab ugsTab : ugsTabs)
+            {
+                tabLogic.insertTab(ugsTab.getArtist(), ugsTab.getName(), ugsTab.getContent(), ugsTab.getType(),
+                        ugsTab.getRating(), ugsTab.getNumberRates(), "https://www.ultimate-guitar.com/", ugsTab.getUrl(),
+                        ugsTab.getCapo(), ugsTab.getDifficulty(), ugsTab.getTuning(), ugsTab.getTonality());
+            }
+        }
+        catch (IOException e)
+        {
+            log.error(e.getMessage(), e);
+        }
+
+        return mav;
+    }
+
 }

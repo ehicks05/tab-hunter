@@ -16,15 +16,12 @@
                     <tr>
                         <th></th>
                         <th>artist</th>
-                        <th>title</th>
+                        <th>name</th>
                         <th class="has-text-right">votes</th>
                         <th class="has-text-right">rating</th>
                         <th>type</th>
                         <th class="has-text-right">views</th>
-                        <%--<th>created on</th>--%>
-                        <%--<th>authorId</th>--%>
                         <%--<th>source</th>--%>
-                        <%--<th>hash</th>--%>
                     </tr>
                     </thead>
                     <tbody>
@@ -34,15 +31,12 @@
                             <td>
                                 <a href="${pageContext.request.contextPath}/artist?artist=${tab.artist}">${tab.artist}</a>
                             </td>
-                            <td><a href="${pageContext.request.contextPath}/tab?tabId=${tab.id}">${tab.title}</a></td>
-                            <td class="has-text-right"><fmt:formatNumber value="${tab.votes}" pattern="#,###"/></td>
+                            <td><a href="${pageContext.request.contextPath}/tab?tabHash=${tab.hash}">${tab.name}</a></td>
+                            <td class="has-text-right"><fmt:formatNumber value="${tab.numberRates}" pattern="#,###"/></td>
                             <td class="has-text-right"><fmt:formatNumber value="${tab.rating}" pattern="#.00"/></td>
                             <td>${tab.type}</td>
                             <td class="has-text-right">${tab.views}</td>
-                            <%--<td><fmt:formatDate value="${tab.createdOn}" pattern="yyyy-MM-dd"/></td>--%>
-                            <%--<td>${tab.authorId}</td>--%>
                             <%--<td class="has-text-right">${tab.source}</td>--%>
-                            <%--<td class="has-text-right">${tab.contentHash}</td>--%>
                         </tr>
                     </c:forEach>
                     </tbody>

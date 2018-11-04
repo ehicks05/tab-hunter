@@ -16,21 +16,23 @@ CREATE TABLE user_role (
 );
 
 create table tab (
-  id           serial    NOT null,
+  hash         int       NOT null,
   artist       text      NOT null,
-  title        text      NOT null,
+  name         text      NOT null,
   content      text      NOT null,
-  author_id    bigint    NOT null,
-  votes        int       NOT null,
-  rating       float     NOT null,
+  number_rates int       NOT null default 0,
+  rating       float     NOT null default 0,
   type         text      NOT null,
-  version      int       NOT null,
-  created_on   timestamp NOT null,
-  views        int       NOT null,
   tuning       text,
   source       text,
-  content_hash int       NOT null,
-  primary key (id)
+  difficulty   text,
+  capo         text,
+  tonality     text,
+  url          text,
+  author_id    bigint    NOT null default 0,
+  views        int       NOT null default 0,
+  created_on   timestamp NOT null default CURRENT_TIMESTAMP,
+  primary key (hash)
 );
 
 CREATE TABLE comment (
