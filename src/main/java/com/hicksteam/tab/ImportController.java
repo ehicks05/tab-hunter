@@ -25,6 +25,6 @@ public class ImportController
     {
         classTabImporter.doImport();
 
-        return new ModelAndView("/");
+        return new ModelAndView("redirect:/");
     }
 }

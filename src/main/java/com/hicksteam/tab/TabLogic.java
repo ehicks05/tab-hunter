@@ -50,7 +50,7 @@ public class TabLogic
         }
         else
         {
-            log.info("Not Adding {} - {}. Reason: Duplicate of existing tab.", artist, name);
+            log.debug("Not Adding {} - {}. Reason: Duplicate of existing tab.", artist, name);
         }
     }
 
@@ -61,11 +61,11 @@ public class TabLogic
         for (Tab match : matches)
             if (match.getContent().equals(content))
             {
-                log.info("Incoming tab '{} - {}' has same content as existing tab '{} - {}'", artist, title, match.getArtist(), match.getName());
+                log.debug("Incoming tab '{} - {}' has same content as existing tab '{} - {}'", artist, title, match.getArtist(), match.getName());
                 return false;
             }
             else
-                log.info("Incoming tab '{} - {}' has a hash collision, but different content, compared to existing tab '{} - {}'",
+                log.debug("Incoming tab '{} - {}' has a hash collision, but different content, compared to existing tab '{} - {}'",
                         artist, title, match.getArtist(), match.getName());
 
         return true;

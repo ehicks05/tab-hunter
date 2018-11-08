@@ -6,17 +6,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.file.FileSystem;
+import java.nio.file.*;
+import java.util.*;
 
 @Configuration
 public class ClassTabImporter
@@ -31,21 +27,76 @@ public class ClassTabImporter
 
     public void doImport() throws IOException
     {
-        List<String> lines = Files.readAllLines(Paths.get("c:", "k", "classtab", "index3.html"));
+        // parse index.htm and identify all the links to tabs that will be imported
+        Map<String, List<List<String>>> artistToTabs = getArtistToTabMap(getIndexLines()); // artist to list of list(name, href)
 
+        // open a filesystem of the zip file
+        Map<String, Object> env = new HashMap<>();
+        env.put("create", false);
+        URI zip_disk = URI.create("jar:" + getZipFilePath().toUri().toString());
+        try (FileSystem fs = FileSystems.newFileSystem(zip_disk, env))
+        {
+            artistToTabs.forEach((artist, tabs) -> tabs.forEach(tab -> {
+                String name = tab.get(0);
+                String href = tab.get(1);
+                String url = tab.get(2);
+
+                // check that our temporary zip file contains all the tabs listed in the index.htm
+                // if a tab is missing from the zip, download it and add it to the zip file
+                Path path = fs.getPath("classtab", href);
+                if (Files.notExists(path))
+                    addTabToZip(href, path);
+
+                // read content from zip file and insert tab into db
+                if (Files.exists(path))
+                {
+                    try
+                    {
+                        byte[] encoded = Files.readAllBytes(path);
+                        String content = new String(encoded, Charset.defaultCharset());
+                        insertTab(artist, name, content, url);
+                    }
+                    catch (IOException e)
+                    {
+                        log.error(e.getMessage(), e);
+                    }
+                }
+            }));
+        }
+    }
+
+    private void addTabToZip(String href, Path path)
+    {
+        log.warn("Missing file: {}. Attempting download.", path.toString());
+
+        try
+        {
+            URL url = new URL("http", "classtab.org", 80, "/" + href);
+            try (InputStream in = url.openStream())
+            {
+                Files.copy(in, path);
+                log.info("Download and insertion into zip file successful.");
+            }
+        }
+        catch (Exception e)
+        {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    private Map<String, List<List<String>>> getArtistToTabMap(List<String> lines) throws IOException
+    {
+        Map<String, List<List<String>>> artistToTabs = new HashMap<>();
         String artist = "";
         for (String line : lines)
         {
-            if (line.isEmpty() || line .startsWith("<a name="))
-                continue;
-
-            if (line.startsWith("<b>"))
+            if (line.startsWith("<b>") && line.contains("</b>"))
             {
                 int start = line.indexOf("<b>") + 3;
                 int end = line.indexOf("</b>");
                 artist = line.substring(start, end);
             }
-            if (line.startsWith("<a"))
+            if (line.startsWith("<a href") && line.contains(".txt"))
             {
                 int linkStart = line.indexOf("<a") + 2;
                 int linkEnd = line.indexOf("</a");
@@ -57,42 +108,43 @@ public class ClassTabImporter
 
                 int titleStart = link.indexOf(">") + 1;
                 String name = link.substring(titleStart);
-
-                Path path = Paths.get("c:", "k", "classtab", href);
-                String content = "";
                 URL url = new URL("http", "classtab.org", 80, "/" + href);
-                if (path.toFile().exists())
-                {
-                    byte[] encoded = Files.readAllBytes(path);
-                    content = new String(encoded, Charset.defaultCharset());
-                }
-                else
-                {
-                    log.warn("Missing file: {}. Attempting download.", path.toString());
 
-                    StringBuilder contentBuilder = new StringBuilder();
-                    List<String> readerLines = new ArrayList<>();
-                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));)
-                    {
-                        reader.lines().forEach(readerLine -> {
-                            contentBuilder.append(readerLine);
-                            readerLines.add(readerLine);
-                        });
-                    }
-                    content = contentBuilder.toString();
-                    if (!content.isEmpty())
-                        log.info("Found file online.");
-
-                    log.info("Saving file to disk.");
-                    try (PrintWriter printWriter = new PrintWriter(path.toFile());)
-                    {
-                        for (String readerLine : readerLines)
-                            printWriter.println(readerLine);
-                    }
-                }
-
-                tabLogic.insertTab(artist, name, content, "guitar", 0D, 0, "classtab.org", url.toString(), "", "", "", "");
+                List<List<String>> artistTabs = artistToTabs.computeIfAbsent(artist, k -> new ArrayList<>());
+                artistTabs.add(new ArrayList<>(Arrays.asList(name, href, url.toString())));
             }
         }
+        return artistToTabs;
+    }
+
+    private void insertTab(String artist, String name, String content, String url)
+    {
+        tabLogic.insertTab(artist, name, content, "guitar", 0D, 0, "classtab.org", url, "", "", "", "");
+    }
+
+    private Path getZipFilePath() throws IOException
+    {
+        Path zipPath = Paths.get(System.getProperty("java.io.tmpdir"), "classtab.zip");
+        if (!zipPath.toFile().exists())
+        {
+            URL zipUrl = new URL("http", "classtab.org", 80, "/zip/classtab.zip");
+            try (BufferedInputStream in = new BufferedInputStream(zipUrl.openStream()))
+            {
+                Files.copy(in, zipPath);
+            }
+        }
+        return zipPath;
+    }
+
+    private List<String> getIndexLines() throws IOException
+    {
+        List<String> lines = new ArrayList<>();
+
+        URL indexUrl = new URL("http", "classtab.org", 80, "/");
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(indexUrl.openStream())))
+        {
+            reader.lines().forEach(lines::add);
+        }
+        return lines;
     }
 }

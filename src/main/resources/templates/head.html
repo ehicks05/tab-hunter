@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="frag(title)">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8"/>
+
+    <title th:text="${title}">TabHunter</title>
+
+    <!--Bulma-->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css"/>
+
+    <!--Font Awesome-->
+    <script defer src="https://use.fontawesome.com/releases/v5.0.4/js/all.js"></script>
+
+    <!--Autocomplete-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.31.0/autocomplete.min.js"></script>
+
+    <link rel="shortcut icon" th:href="@{/img/guitar.png}">
+</head>
+</html>

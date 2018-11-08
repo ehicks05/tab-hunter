@@ -15,6 +15,7 @@ buildscript {
         classpath "gradle.plugin.com.boxfuse.client:gradle-plugin-publishing:5.2.1"
         classpath "com.github.ben-manes:gradle-versions-plugin:0.20.0"
         classpath "org.ajoberstar.grgit:grgit-gradle:3.0.0-rc.2"
+        classpath "gradle.plugin.com.gorylenko.gradle-git-properties:gradle-git-properties:2.0.0-beta1"
     }
 }
 
@@ -35,6 +36,7 @@ apply plugin: 'io.spring.dependency-management'
 apply plugin: 'nu.studer.jooq'
 apply plugin: 'org.flywaydb.flyway'
 apply plugin: "com.github.ben-manes.versions"
+apply plugin: "com.gorylenko.gradle-git-properties"
 
 group = 'com.hicks-team'
 version = '0.0.1-SNAPSHOT'
@@ -47,10 +49,10 @@ repositories {
 }
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-devtools")
+//    implementation("org.springframework.boot:spring-boot-devtools")
     implementation('org.springframework.boot:spring-boot-starter-jdbc')
     implementation("org.springframework.boot:spring-boot-starter-actuator")
-//    implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+    implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
     implementation('org.springframework.boot:spring-boot-starter-jersey')
     implementation('org.springframework.boot:spring-boot-starter-web')
     implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -62,14 +64,18 @@ dependencies {
     implementation 'org.postgresql:postgresql:42.2.5'
     jooqRuntime 'org.postgresql:postgresql:42.2.5'
 
-    runtime 'org.apache.tomcat.embed:tomcat-embed-jasper'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-jasper'
     implementation 'javax.servlet.jsp:javax.servlet.jsp-api:2.3.3'
-    implementation 'javax.servlet:jstl:1.2'
+    implementation 'javax.servlet:jstl'
 
 
     testImplementation("junit:junit")
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation("org.springframework.security:spring-security-test")
+}
+
+gitProperties {
+    gitPropertiesDir = "${project.rootDir}/src/main/resources"
 }
 
 ext['jooq.version'] = '3.11.2'
@@ -83,7 +89,7 @@ jooq {
             driver = 'org.postgresql.Driver'
             url = 'jdbc:postgresql://localhost:5432/tab'
             user = 'postgres'
-            password = 'eric'
+            password = 'password'
             schema = 'public'
         }
         generator {
@@ -125,28 +131,12 @@ jooq {
 flyway {
     url = 'jdbc:postgresql://localhost:5432/tab'
     user = 'postgres'
-    password = 'eric'
+    password = 'password'
     schemas = ['public']
 }
 
 generateTabJooqSchemaSource.dependsOn flywayMigrate
-test.dependsOn flywayClean
 
-// Task to create a version file based on git repo data
-import org.ajoberstar.grgit.*
-import java.time.ZonedDateTime
-
-task versionTxt()  {
-    doLast {
-        Commit head = Grgit.open(dir: '.').head()
-        new File("$projectDir/src/main/resources/version.txt").text =
-                """Application-name: TAB
-Version: 0.0.${Grgit.open(dir: '.').log().size()}
-Revision: ${head.id}
-Revision-Date: ${head.dateTime}
-Author: ${head.author.name} (${head.author.email})
-
-Build-Date: ${ZonedDateTime.now()}
-"""
-    }
+bootRun {
+    systemProperties = System.properties
 }

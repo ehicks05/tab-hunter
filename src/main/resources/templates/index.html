@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="head :: frag(${title})">
+    <title>Tab Hunter</title>
+</head>
+<body>
+
+<div th:replace="header :: frag"></div>
+<div th:replace="tabTable :: frag(${tabs}, ${title})"></div>
+<div th:replace="footer :: frag"></div>
+
+</body>
+</html>

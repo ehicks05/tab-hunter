@@ -8,6 +8,10 @@
                 <p>
                     <img src="${pageContext.request.contextPath}/resources/guitar.png" style="width:28px;"/>
                     TAB build <span title="${userSession.systemInfo.gitVersion}">${userSession.systemInfo.version}</span> by HicksTeam
+
+                    <c:if test="${devOrProd eq 'dev'}"><span>🛠</span></c:if>
+                    <c:if test="${devOrProd eq 'prod'}"><span>💎️</span></c:if>
+
                 </p>
                 <p>
                     <c:if test="${!empty sessionScope.userSession}">

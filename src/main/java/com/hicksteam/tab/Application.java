@@ -14,6 +14,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Arrays;
@@ -49,6 +51,14 @@ public class Application
                 ((StandardJarScanner) context.getJarScanner()).setScanManifest(false);
             }
         };
+    }
+
+    @Bean
+    public static PropertySourcesPlaceholderConfigurer properties() {
+        PropertySourcesPlaceholderConfigurer props = new PropertySourcesPlaceholderConfigurer();
+        props.setLocations(
+                new ClassPathResource("git.properties"));
+        return props;
     }
 
     @Bean

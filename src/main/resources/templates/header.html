@@ -1,6 +1,13 @@
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
 
-<script>
+<body th:fragment="frag">
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    var context = /*[[@{/}]]*/ '';
+    /*]]>*/
+
     var myAC;
     var artist = '';
     var name = '';
@@ -17,7 +24,8 @@
     document.addEventListener('DOMContentLoaded', function () {
 
         // Get all "navbar-burger" elements
-        var $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+        var $navbarBurgers = Array.prototype.slice.call(
+            document.querySelectorAll('.navbar-burger'), 0);
 
         // Check if there are any navbar burgers
         if ($navbarBurgers.length > 0) {
@@ -40,7 +48,7 @@
 
         function search(query, callback) {
 
-            fetch("${pageContext.request.contextPath}/ajaxSearch?query=" + query)
+            fetch(context + "ajaxSearch?query=" + query)
                 .then(function(response) {
                     return response.json();
                 })
@@ -86,9 +94,10 @@
     function goToTab()
     {
         var term = document.getElementById('searchInput').value;
-        var url = "${pageContext.request.contextPath}/search?query=" + encodeURIComponent(term) +
+        var query = encodeURIComponent(term) +
             "&artist=" + encodeURIComponent(artist) +
             "&name=" + encodeURIComponent(name);
+        var url = context + "search?query=" + query;
         console.log(url);
         location.href = url;
     }
@@ -128,26 +137,27 @@
     }
 </style>
 
-<c:if test="${!empty responseMessage}">
-    <div class="container">
-        <div class="columns is-multiline is-centered">
-            <div class="column is-one-quarter">
-                <div id="server-response-notification" class="notification is-hidden" style="position: fixed;top:90%;left:90%;transform: translate(-50%, -50%);z-index: 10;">
-                    <button class="delete"></button>
-                </div>
-            </div>
-        </div>
-    </div>
-</c:if>
+<!--<div class="container" th:if="${annotation #responseMessage.isEmpty}">-->
+    <!--<div class="columns is-multiline is-centered">-->
+        <!--<div class="column is-one-quarter">-->
+            <!--<div id="server-response-notification" class="notification is-hidden" -->
+                 <!--style="position: fixed;top:90%;left:90%;-->
+                 <!--transform: translate(-50%, -50%);z-index: 10;">-->
+                <!--<button class="delete"></button>-->
+            <!--</div>-->
+        <!--</div>-->
+    <!--</div>-->
+<!--</div>-->
 
 <nav class="navbar is-dark" role="navigation" aria-label="main navigation">
     <div class="container">
         <div class="navbar-brand">
-            <a class="navbar-item" href="${pageContext.request.contextPath}">
-                <img src="${pageContext.request.contextPath}/resources/guitar.png" alt="Guitar" />
+            <a class="navbar-item" th:href="@{/}">
+                <img th:src="@{/img/guitar.png}" alt="Guitar" />
             </a>
 
-            <a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navMenu">
+            <a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false"
+               data-target="navMenu">
                 <span aria-hidden="true"></span>
                 <span aria-hidden="true"></span>
                 <span aria-hidden="true"></span>
@@ -159,7 +169,8 @@
                 <div class="navbar-item is-expanded">
                     <div class="field has-addons" style="flex-grow: 1; flex-shrink: 1;">
                         <p class="control" style="flex-grow: 1; flex-shrink: 1;">
-                            <input id="searchInput" class="input is-expanded is-fullwidth" type="text" placeholder="Find a tab">
+                            <input id="searchInput" class="input is-expanded is-fullwidth"
+                                   type="text" placeholder="Find a tab">
                         </p>
                         <p class="control">
                             <button id="searchButton" class="button is-primary">
@@ -173,17 +184,17 @@
             <div class="navbar-end">
                 <a class="navbar-item">
                     <div class="buttons">
-                        <a class="button is-primary" href="${pageContext.request.contextPath}/signup">
+                        <a class="button is-primary" th:href="@{/signup}">
                             <span class="icon has-text-light">
                                 <i class="fas fa-plus-square"></i>
                             </span>
                             <strong>Sign Up</strong>
                         </a>
 
-                        <a class="button is-light" href="${pageContext.request.contextPath}/logIn">
+                        <a class="button is-light" th:href="@{/logIn}">
                             Log In
                         </a>
-                        <a class="button is-light" href="${pageContext.request.contextPath}/import">
+                        <a class="button is-light" th:href="@{/import}">
                             import classtabs
                         </a>
                     </div>
@@ -193,4 +204,5 @@
     </div>
 </nav>
 
-<c:remove var="responseMessage" scope="session" />
+</body>
+</html>

@@ -11,18 +11,18 @@ public class MvcConfig implements WebMvcConfigurer
 {
     public void addViewControllers(ViewControllerRegistry registry)
     {
-        registry.addViewController("/posts/*").setViewName("forward:/index.html");
-
-        registry.addViewController("/home").setViewName("home");
-        registry.addViewController("/hello").setViewName("hello");
-        registry.addViewController("/login").setViewName("login");
+//        registry.addViewController("/posts/*").setViewName("forward:/index.html");
+//
+//        registry.addViewController("/home").setViewName("home");
+//        registry.addViewController("/hello").setViewName("hello");
+//        registry.addViewController("/login").setViewName("login");
     }
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry
                 .addResourceHandler("/resources/**")
-                .addResourceLocations("/resources/","/other-resources/")
+                .addResourceLocations("/resources")
                 .setCachePeriod(3600)
                 .resourceChain(true)
                 .addResolver(new PathResourceResolver());

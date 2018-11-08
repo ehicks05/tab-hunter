@@ -7,9 +7,12 @@ import com.hicksteam.tab.importLogic.UGSTab;
 import org.jooq.DSLContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
@@ -38,15 +41,31 @@ public class TabsController
         this.tabLogic = tabLogic;
     }
 
+    @Value("${git.total.commit.count}")
+    private String commitCount;
+
+    @ModelAttribute("commitCount")
+    public String getCommitCount() {
+        return commitCount;
+    }
+
+    @Value("${basic.message}")
+    private String devOrProd;
+
+    @ModelAttribute("devOrProd")
+    public String getDevOrProd() {
+        return devOrProd;
+    }
+
     @GetMapping("/")
-    public ModelAndView showIndex()
+    public String showIndex(Model model)
     {
         List<Tab> tabs = create.selectFrom(TAB).orderBy(TAB.VIEWS.desc()).limit(RESULT_SIZE).fetchInto(TAB).into(Tab.class);
 
-        ModelAndView mav = new ModelAndView("index");
-        mav.addObject("title", "Top 10 Tabs");
-        mav.addObject("tabs", tabs);
-        return mav;
+        model.addAttribute("title", "Top " + RESULT_SIZE + " Tabs");
+        model.addAttribute("tabs", tabs);
+
+        return "index";
     }
 
     @GetMapping("/all")

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<footer class="footer" th:fragment="frag">
+    <div class="container">
+        <div class="columns">
+            <div class="column has-text-right">
+                <p>
+                    <img th:src="@{/img/guitar.png}"
+                         style="width:28px;" th:alt="guitar"/>
+                    TAB build
+                    <span th:title="${commitCount}" th:text="${commitCount}"></span>
+                    by HicksTeam
+
+                    <span th:if="${devOrProd eq 'dev'}">🛠</span>
+                    <span th:if="${devOrProd eq 'prod'}">💎️</span>
+
+                </p>
+                <p>
+                    <!--<span title="Time from entering the controller to rendering this element."-->
+                          <!--th:if="${#session.userSession != null}">-->
+                        <!--${userSession.currentTimeMillis - userSession.enteredController} ms-->
+                    <!--</span>-->
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>

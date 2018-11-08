@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<section class="section" th:fragment="frag(tabs,title)">
+    <div class="container">
+        <div class="columns is-multiline is-centered">
+            <div class="column">
+                <h1 class="title" th:text="${title}"></h1>
+                <table class="table is-narrow">
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th>artist</th>
+                        <th>name</th>
+                        <th class="has-text-right">votes</th>
+                        <th class="has-text-right">rating</th>
+                        <th>type</th>
+                        <th class="has-text-right">views</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="tab,loop : ${tabs}">
+                        <td class="has-text-right" th:text="${loop.count} + ."></td>
+                        <td>
+                            <a th:href="@{/artist(artist=${tab.artist})}" th:text="${tab.artist}"></a>
+                        </td>
+                        <td><a th:href="@{/tab(tabHash=${tab.hash})}" th:text="${tab.name}"></a></td>
+                        <td class="has-text-right">
+                            <span th:text="${tab.numberRates}"></span>
+                        </td>
+                        <td class="has-text-right">
+                            <span th:text="${tab.rating}"></span>
+                        </td>
+                        <td th:text="${tab.type}"></td>
+                        <td class="has-text-right" th:text="${tab.views}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+</body>
+</html>
+
