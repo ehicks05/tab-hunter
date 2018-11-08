@@ -16,6 +16,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Arrays;
@@ -24,6 +25,7 @@ import static com.hicksteam.tab.db.gen.Tables.TAB_USER;
 import static com.hicksteam.tab.db.gen.Tables.USER_ROLE;
 
 @SpringBootApplication
+@EnableScheduling
 public class Application
 {
     private static final Logger log = LoggerFactory.getLogger(Application.class);

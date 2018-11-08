@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hicksteam.tab.db.gen.tables.pojos.Tab;
 import com.hicksteam.tab.importLogic.UGSTab;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +34,6 @@ public class TabsController
     private static final Logger log = LoggerFactory.getLogger(TabsController.class);
     private DSLContext create;
     private TabLogic tabLogic;
-    private static final int RESULT_SIZE = 50;
 
     public TabsController(DSLContext create, TabLogic tabLogic)
     {
@@ -60,9 +60,9 @@ public class TabsController
     @GetMapping("/")
     public String showIndex(Model model)
     {
-        List<Tab> tabs = create.selectFrom(TAB).orderBy(TAB.VIEWS.desc()).limit(RESULT_SIZE).fetchInto(TAB).into(Tab.class);
+        List<Tab> tabs = tabLogic.getTabs(TabProjection.LIST, null, TAB.VIEWS.desc(), true);
 
-        model.addAttribute("title", "Top " + RESULT_SIZE + " Tabs");
+        model.addAttribute("title", "Top " + tabLogic.RESULT_SIZE + " Tabs");
         model.addAttribute("tabs", tabs);
 
         return "index";
@@ -71,7 +71,7 @@ public class TabsController
     @GetMapping("/all")
     public ModelAndView showAll()
     {
-        List<Tab> tabs = create.selectFrom(TAB).orderBy(TAB.VIEWS.desc()).fetchInto(TAB).into(Tab.class);
+        List<Tab> tabs = tabLogic.getTabs(TabProjection.LIST, null, TAB.VIEWS.desc(), false);
 
         ModelAndView mav = new ModelAndView("index");
         mav.addObject("title", "All Tabs");
@@ -84,7 +84,7 @@ public class TabsController
     {
         ModelAndView mav = new ModelAndView("tab");
 
-        Tab tab = create.selectFrom(TAB).where(TAB.HASH.eq(tabHash)).fetchAny().into(Tab.class);
+        Tab tab = tabLogic.getTab(TabProjection.ALL, TAB.HASH.eq(tabHash), TAB.VIEWS.desc(), false);
         if (tab == null)
         {
             log.error("couldn't find tab.");
@@ -105,8 +105,7 @@ public class TabsController
     @GetMapping("/artist")
     public ModelAndView showArtistTabs(@RequestParam String artist)
     {
-        List<Tab> tabs = create.selectFrom(TAB).where(TAB.ARTIST.eq(artist))
-                .orderBy(TAB.VIEWS.desc()).fetchInto(TAB).into(Tab.class);
+        List<Tab> tabs = tabLogic.getTabs(TabProjection.LIST, TAB.ARTIST.eq(artist), TAB.VIEWS.desc(), true);
 
         ModelAndView mav = new ModelAndView("index");
         mav.addObject("title", artist);
@@ -118,8 +117,13 @@ public class TabsController
     @ResponseBody
     public List<AjaxSearchResult> getAjaxSearchResults(@RequestParam String query)
     {
-        return findTabsByQueryString(query).stream()
-                .map(result -> new AjaxSearchResult(result.getArtist(), result.getName(), result.getArtist() + " - " + result.getName()))
+        Condition condition = TAB.ARTIST.likeIgnoreCase("%" + query + "%")
+                        .or(TAB.NAME.likeIgnoreCase("%" + query + "%"));
+
+        List<Tab> tabs = tabLogic.getTabs(TabProjection.SEARCH, condition, TAB.VIEWS.desc(), true);
+
+        return tabs.stream()
+                .map(tab -> new AjaxSearchResult(tab.getArtist(), tab.getName(), tab.getArtist() + " - " + tab.getName()))
                 .distinct().collect(Collectors.toList());
     }
 
@@ -198,29 +202,24 @@ public class TabsController
         }
 
         List<Tab> results;
+        Condition condition;
         if (!artist.isEmpty() && !name.isEmpty())
         {
-            results = create.selectFrom(TAB)
-                    .where(TAB.ARTIST.likeIgnoreCase("%" + artist + "%"))
-                    .and(TAB.NAME.likeIgnoreCase("%" + name + "%"))
-                    .orderBy(TAB.VIEWS.desc()).limit(RESULT_SIZE).fetchInto(TAB).into(Tab.class);
+            condition = TAB.ARTIST.likeIgnoreCase("%" + artist + "%")
+                            .and(TAB.NAME.likeIgnoreCase("%" + name + "%"));
         }
         else
-            results = findTabsByQueryString(query);
+        {
+            condition = TAB.ARTIST.likeIgnoreCase("%" + query + "%")
+                            .or(TAB.NAME.likeIgnoreCase("%" + query + "%"));
+        }
+
+        results = tabLogic.getTabs(TabProjection.LIST, condition, TAB.VIEWS.desc(), true);
 
         ModelAndView mav = new ModelAndView("index");
         mav.addObject("title", "Search Results");
         mav.addObject("tabs", results);
         return mav;
-    }
-
-    private List<Tab> findTabsByQueryString(@RequestParam String query)
-    {
-        
-        return create.selectFrom(TAB)
-                .where(TAB.ARTIST.likeIgnoreCase("%" + query + "%"))
-                .or(TAB.NAME.likeIgnoreCase("%" + query + "%"))
-                .orderBy(TAB.VIEWS.desc()).limit(RESULT_SIZE).fetchInto(TAB).into(Tab.class);
     }
 
     @GetMapping("/admin")
