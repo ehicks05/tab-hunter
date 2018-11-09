@@ -46,11 +46,7 @@
                     </tr>
                     <tr>
                         <td>Rating</td>
-                        <td th:text="${tab.rating}"></td>
-                    </tr>
-                    <tr>
-                        <td>Number Rates</td>
-                        <td th:text="${tab.numberRates}"></td>
+                        <td th:text="${tab.rating} + ' (' + ${tab.numberRates} + ')'"></td>
                     </tr>
                     <tr>
                         <td>Difficulty</td>
