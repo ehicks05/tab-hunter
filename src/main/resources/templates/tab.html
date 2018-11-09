@@ -9,7 +9,7 @@
 <section class="section">
     <div class="container">
         <div class="columns">
-            <h1 class="title" th:text="${tab.artist} + '-' + ${tab.name}"></h1>
+            <h1 class="title" th:utext="${tab.artist} + ' - ' + ${tab.name}"></h1>
         </div>
     </div>
 </section>
@@ -23,6 +23,14 @@
             <div class="column is-one-quarter">
                 <table class="table">
                     <tbody>
+                    <tr>
+                        <td>Created On</td>
+                        <td th:text="${#dates.format(tab.createdOn, 'dd/MMM/yyyy')}"></td>
+                    </tr>
+                    <tr>
+                        <td>Rating</td>
+                        <td th:text="${tab.rating} + ' (' + ${tab.numberRates} + ')'"></td>
+                    </tr>
                     <tr>
                         <td>URL</td>
                         <td><a target="_blank" th:href="@{${tab.url}}">Link</a></td>
@@ -45,16 +53,8 @@
                         <td th:text="${tab.capo}"></td>
                     </tr>
                     <tr>
-                        <td>Rating</td>
-                        <td th:text="${tab.rating} + ' (' + ${tab.numberRates} + ')'"></td>
-                    </tr>
-                    <tr>
                         <td>Difficulty</td>
                         <td th:text="${tab.difficulty}"></td>
-                    </tr>
-                    <tr>
-                        <td>Created On</td>
-                        <td th:text="${tab.createdOn}"></td>
                     </tr>
                     </tbody>
                 </table>

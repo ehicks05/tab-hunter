@@ -11,8 +11,7 @@
                     <thead>
                     <tr>
                         <th></th>
-                        <th>artist</th>
-                        <th>name</th>
+                        <th></th>
                         <th class="has-text-right">rating</th>
                         <th>type</th>
                     </tr>
@@ -21,11 +20,12 @@
                     <tr th:each="tab,loop : ${tabs}">
                         <td class="has-text-right" th:text="${loop.count} + ."></td>
                         <td>
-                            <a th:href="@{/artist(artist=${tab.artist})}" th:text="${tab.artist}"></a>
+                            <a th:href="@{/artist(artist=${tab.artist})}" th:utext="${tab.artist}"></a>
+                            <br>
+                            <b><a th:href="@{/tab(tabHash=${tab.hash})}" th:utext="${tab.name}"></a></b>
                         </td>
-                        <td><a th:href="@{/tab(tabHash=${tab.hash})}" th:text="${tab.name}"></a></td>
                         <td class="has-text-right no-wrap">
-                            <span th:text="${tab.rating}" th:title="${tab.numberRates} + ' votes'"></span>
+                            <span th:text="${#numbers.formatDecimal(tab.rating, 1, 2)}" th:title="${tab.numberRates} + ' votes'"></span>
                         </td>
                         <td th:text="${tab.type}"></td>
                     </tr>

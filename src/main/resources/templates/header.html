@@ -58,11 +58,18 @@
                 });
         }
 
+        function decodeHtml(html) {
+            var txt = document.createElement("textarea");
+            txt.innerHTML = html;
+            return txt.value;
+        }
+
         // initialize algolia autocomplete
         myAC = autocomplete('#searchInput', { hint: false, cssClasses: {}, minLength: 2 }, [
             {
                 source: search,
-                displayKey: 'display',
+                // displayKey: 'display',
+                displayKey: function(sugg) { return decodeHtml(sugg.display); },
                 templates: {
                     suggestion: function(suggestion) {
                         return String.fromHtmlEntities(suggestion.display);

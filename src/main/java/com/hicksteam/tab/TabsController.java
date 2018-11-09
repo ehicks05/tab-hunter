@@ -93,6 +93,7 @@ public class TabsController
         else
         {
             mav.addObject("tab", tab);
+            mav.addObject("title", tab.getName());
 
             create.update(TAB)
                     .set(TAB.VIEWS, TAB.VIEWS.add(1))

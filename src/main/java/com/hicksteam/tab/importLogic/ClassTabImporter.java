@@ -119,7 +119,7 @@ public class ClassTabImporter
 
     private void insertTab(String artist, String name, String content, String url)
     {
-        tabLogic.insertTab(artist, name, content, "guitar", 0D, 0, "classtab.org", url, "", "", "", "");
+        tabLogic.insertTab(artist, name, content, "Tab", 0D, 0, "classtab.org", url, "", "", "", "");
     }
 
     private Path getZipFilePath() throws IOException
