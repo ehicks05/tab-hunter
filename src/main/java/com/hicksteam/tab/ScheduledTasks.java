@@ -10,13 +10,13 @@ public class ScheduledTasks
 {
     private static final Logger log = LoggerFactory.getLogger(ScheduledTasks.class);
 
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRate = 1 /* h */ * 60 /* m */ * 60 /* s */ * 1000 /* ms */)
     public void reportRam()
     {
         long allocatedMemory = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
         long presumableFreeMemory = Runtime.getRuntime().maxMemory() - allocatedMemory;
 
-        log.info("In Use Ram: {}.   Free Ram: {}", humanReadableByteCount(allocatedMemory, false), humanReadableByteCount(presumableFreeMemory, false));
+        log.info("Used Ram: {}.  Free Ram: {}", humanReadableByteCount(allocatedMemory, false), humanReadableByteCount(presumableFreeMemory, false));
     }
 
     public static String humanReadableByteCount(long bytes, boolean si)

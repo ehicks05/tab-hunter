@@ -8,6 +8,7 @@ import org.jooq.DSLContext;
 import org.jooq.OrderField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Configuration;
 
 import java.sql.Timestamp;
@@ -81,6 +82,7 @@ public class TabLogic
         return results.size() > 0 ? results.get(0) : null;
     }
 
+    @Cacheable("tabs")
     public List<Tab> getTabs(TabProjection projection, Condition condition, OrderField<?> orderField, boolean limitResults)
     {
         if (condition == null)

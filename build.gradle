@@ -13,9 +13,13 @@ buildscript {
         classpath 'nu.studer:gradle-jooq-plugin:3.0.2'
         classpath 'org.postgresql:postgresql:42.2.5'
         classpath "gradle.plugin.com.boxfuse.client:gradle-plugin-publishing:5.2.1"
-        classpath "com.github.ben-manes:gradle-versions-plugin:0.20.0"
-        classpath "org.ajoberstar.grgit:grgit-gradle:3.0.0-rc.2"
-        classpath "gradle.plugin.com.gorylenko.gradle-git-properties:gradle-git-properties:2.0.0-beta1"
+        classpath "gradle.plugin.com.gorylenko.gradle-git-properties:gradle-git-properties:2.0.0"
+
+        // required since they were dropped in jdk9, may be able to remove after jooq 3.12?
+        classpath 'com.sun.xml.bind:jaxb-core:2.3.0.1'
+        classpath 'com.sun.xml.bind:jaxb-impl:2.3.0.1'
+        classpath 'javax.activation:activation:1.1.1'
+        classpath 'javax.xml.bind:jaxb-api:2.3.0'
     }
 }
 
@@ -35,21 +39,19 @@ apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'nu.studer.jooq'
 apply plugin: 'org.flywaydb.flyway'
-apply plugin: "com.github.ben-manes.versions"
 apply plugin: "com.gorylenko.gradle-git-properties"
 
 group = 'com.hicks-team'
 version = '0.0.1-SNAPSHOT'
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = 11
+targetCompatibility = 11
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-//    implementation("org.springframework.boot:spring-boot-devtools")
     implementation('org.springframework.boot:spring-boot-starter-jdbc')
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
@@ -64,24 +66,25 @@ dependencies {
     implementation 'org.postgresql:postgresql:42.2.5'
     jooqRuntime 'org.postgresql:postgresql:42.2.5'
 
+    // required since they were dropped in jdk9, may be able to remove after jooq 3.12?
+    jooqRuntime 'javax.activation:activation:1.1.1'
+    jooqRuntime 'javax.xml.bind:jaxb-api:2.3.0'
+    jooqRuntime 'com.sun.xml.bind:jaxb-core:2.3.0.1'
+    jooqRuntime 'com.sun.xml.bind:jaxb-impl:2.3.0.1'
+
     implementation 'org.apache.tomcat.embed:tomcat-embed-jasper'
     implementation 'javax.servlet.jsp:javax.servlet.jsp-api:2.3.3'
     implementation 'javax.servlet:jstl'
-
-
+    
     testImplementation("junit:junit")
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation("org.springframework.security:spring-security-test")
 }
 
-gitProperties {
-    gitPropertiesDir = "${project.rootDir}/src/main/resources"
-}
-
-ext['jooq.version'] = '3.11.2'
+ext['jooq.version'] = '3.11.7'
 
 jooq {
-    version = '3.11.2'
+    version = '3.11.7'
     edition = 'OSS'
 
     tab(sourceSets.main) {
@@ -139,4 +142,8 @@ generateTabJooqSchemaSource.dependsOn flywayMigrate
 
 bootRun {
     systemProperties = System.properties
+}
+
+bootJar {
+    launchScript()
 }

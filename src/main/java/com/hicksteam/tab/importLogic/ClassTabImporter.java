@@ -19,6 +19,7 @@ public class ClassTabImporter
 {
     private static final Logger log = LoggerFactory.getLogger(TabsController.class);
     private TabLogic tabLogic;
+    private boolean importHasRun = false;
 
     public ClassTabImporter(TabLogic tabLogic)
     {
@@ -27,6 +28,13 @@ public class ClassTabImporter
 
     public void doImport() throws IOException
     {
+        if (importHasRun)
+        {
+            log.info("Not running ClassTabImporter.doImport(). Import has already been run.");
+            return;
+        }
+        log.info("Starting ClassTabImporter.doImport().");
+
         // parse index.htm and identify all the links to tabs that will be imported
         Map<String, List<List<String>>> artistToTabs = getArtistToTabMap(getIndexLines()); // artist to list of list(name, href)
 
@@ -62,7 +70,10 @@ public class ClassTabImporter
                     }
                 }
             }));
+
+            importHasRun = true;
         }
+        log.info("Finished ClassTabImporter.doImport().");
     }
 
     private void addTabToZip(String href, Path path)

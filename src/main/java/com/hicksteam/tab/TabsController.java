@@ -1,7 +1,12 @@
 package com.hicksteam.tab;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.hicksteam.tab.db.gen.tables.pojos.Tab;
 import com.hicksteam.tab.importLogic.UGSTab;
 import org.jooq.Condition;
@@ -18,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -49,14 +55,6 @@ public class TabsController
         return commitCount;
     }
 
-    @Value("${basic.message}")
-    private String devOrProd;
-
-    @ModelAttribute("devOrProd")
-    public String getDevOrProd() {
-        return devOrProd;
-    }
-
     @GetMapping("/")
     public String showIndex(Model model)
     {
@@ -77,6 +75,92 @@ public class TabsController
         mav.addObject("title", "All Tabs");
         mav.addObject("tabs", tabs);
         return mav;
+    }
+
+    @GetMapping(value = "/all/staticjson", produces = "application/json")
+    @ResponseBody public String showStatic() throws IOException
+    {
+        List<Tab> tabs = tabLogic.getTabs(TabProjection.LIST, null, TAB.VIEWS.desc(), true);
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        SimpleModule module = new SimpleModule();
+        module.addSerializer(Tab.class, new TabListingSerializer());
+        mapper.registerModule(module);
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        mapper.writeValue(out, tabs);
+
+        final byte[] data = out.toByteArray();
+
+        return "{\"name\": \"Eric\", \"eyeColor\": \"green\"}";
+    }
+
+    @GetMapping(value = "/all/topjson", produces = "application/json")
+    @ResponseBody public String showTopJson() throws IOException
+    {
+        List<Tab> tabs = tabLogic.getTabs(TabProjection.LIST, null, TAB.VIEWS.desc(), true);
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        SimpleModule module = new SimpleModule();
+        module.addSerializer(Tab.class, new TabListingSerializer());
+        mapper.registerModule(module);
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        mapper.writeValue(out, tabs);
+
+        final byte[] data = out.toByteArray();
+
+        return new String(data);
+    }
+
+    @GetMapping(value = "/all/json", produces = "application/json")
+    @ResponseBody public String showAllJson() throws IOException
+    {
+        List<Tab> tabs = tabLogic.getTabs(TabProjection.LIST, null, TAB.VIEWS.desc(), false);
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        SimpleModule module = new SimpleModule();
+        module.addSerializer(Tab.class, new TabListingSerializer());
+        mapper.registerModule(module);
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        mapper.writeValue(out, tabs);
+
+        final byte[] data = out.toByteArray();
+        
+        return new String(data);
+    }
+
+    public class TabListingSerializer extends StdSerializer<Tab>
+    {
+
+        public TabListingSerializer() {
+            this(null);
+        }
+
+        public TabListingSerializer(Class<Tab> t) {
+            super(t);
+        }
+
+        @Override
+        public void serialize(
+                Tab value, JsonGenerator jgen, SerializerProvider provider)
+                throws IOException, JsonProcessingException
+        {
+
+            jgen.writeStartObject();
+            jgen.writeNumberField("hash", value.getHash());
+            jgen.writeStringField("artist", value.getArtist());
+            jgen.writeStringField("name", value.getName());
+            jgen.writeNumberField("rating", value.getRating());
+            jgen.writeNumberField("numberRates", value.getNumberRates());
+            jgen.writeStringField("type", value.getType());
+            jgen.writeNumberField("views", value.getViews());
+            jgen.writeEndObject();
+        }
     }
 
     @GetMapping("/tab")
@@ -106,7 +190,7 @@ public class TabsController
     @GetMapping("/artist")
     public ModelAndView showArtistTabs(@RequestParam String artist)
     {
-        List<Tab> tabs = tabLogic.getTabs(TabProjection.LIST, TAB.ARTIST.eq(artist), TAB.VIEWS.desc(), true);
+        List<Tab> tabs = tabLogic.getTabs(TabProjection.LIST, TAB.ARTIST.eq(artist), TAB.VIEWS.desc(), false);
 
         ModelAndView mav = new ModelAndView("index");
         mav.addObject("title", artist);
