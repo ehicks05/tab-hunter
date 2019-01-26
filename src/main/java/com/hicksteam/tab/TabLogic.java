@@ -82,7 +82,7 @@ public class TabLogic
         return results.size() > 0 ? results.get(0) : null;
     }
 
-    @Cacheable("tabs")
+//    @Cacheable("tabs")
     public List<Tab> getTabs(TabProjection projection, Condition condition, OrderField<?> orderField, boolean limitResults)
     {
         if (condition == null)

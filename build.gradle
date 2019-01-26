@@ -51,6 +51,8 @@ repositories {
     mavenCentral()
 }
 
+ext['springBootAdminVersion'] = '2.1.2'
+
 dependencies {
     implementation('org.springframework.boot:spring-boot-starter-jdbc')
     implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -59,6 +61,7 @@ dependencies {
     implementation('org.springframework.boot:spring-boot-starter-web')
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation 'de.codecentric:spring-boot-admin-starter-client'
 
 //    implementation('org.springframework.boot:spring-boot-starter-jooq')
     implementation 'org.jooq:jooq'
@@ -75,7 +78,7 @@ dependencies {
     implementation 'org.apache.tomcat.embed:tomcat-embed-jasper'
     implementation 'javax.servlet.jsp:javax.servlet.jsp-api:2.3.3'
     implementation 'javax.servlet:jstl'
-    
+
     testImplementation("junit:junit")
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation("org.springframework.security:spring-security-test")
@@ -90,7 +93,7 @@ jooq {
     tab(sourceSets.main) {
         jdbc {
             driver = 'org.postgresql.Driver'
-            url = 'jdbc:postgresql://localhost:5432/tab'
+            url = 'jdbc:postgresql://localhost:5432/tabhunter'
             user = 'postgres'
             password = 'password'
             schema = 'public'
@@ -132,7 +135,7 @@ jooq {
 }
 
 flyway {
-    url = 'jdbc:postgresql://localhost:5432/tab'
+    url = 'jdbc:postgresql://localhost:5432/tabhunter'
     user = 'postgres'
     password = 'password'
     schemas = ['public']
@@ -146,4 +149,10 @@ bootRun {
 
 bootJar {
     launchScript()
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "de.codecentric:spring-boot-admin-dependencies:${springBootAdminVersion}"
+    }
 }
