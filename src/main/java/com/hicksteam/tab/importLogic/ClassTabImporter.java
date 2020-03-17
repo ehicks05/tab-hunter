@@ -138,7 +138,7 @@ public class ClassTabImporter
         Path zipPath = Paths.get(System.getProperty("java.io.tmpdir"), "classtab.zip");
         if (!zipPath.toFile().exists())
         {
-            URL zipUrl = new URL("http", "classtab.org", 80, "/zip/classtab.zip");
+            URL zipUrl = new URL("https", "classtab.org", 443, "/zip/classtab.zip");
             try (BufferedInputStream in = new BufferedInputStream(zipUrl.openStream()))
             {
                 Files.copy(in, zipPath);
@@ -151,7 +151,7 @@ public class ClassTabImporter
     {
         List<String> lines = new ArrayList<>();
 
-        URL indexUrl = new URL("http", "classtab.org", 80, "/");
+        URL indexUrl = new URL("https", "classtab.org", 443, "/index_old.htm");
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(indexUrl.openStream())))
         {
             reader.lines().forEach(lines::add);
