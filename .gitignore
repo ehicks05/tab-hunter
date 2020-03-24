@@ -2,7 +2,6 @@
 .idea/
 tab.iml
 build/
-gradle/
 out/
 logs/
 src/main/generated/

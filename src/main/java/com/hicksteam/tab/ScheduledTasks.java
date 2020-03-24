@@ -10,7 +10,7 @@ public class ScheduledTasks
 {
     private static final Logger log = LoggerFactory.getLogger(ScheduledTasks.class);
 
-    @Scheduled(fixedRate = 1 /* h */ * 60 /* m */ * 60 /* s */ * 1000 /* ms */)
+    @Scheduled(cron = "0 0 * * * ?")
     public void reportRam()
     {
         long allocatedMemory = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
@@ -19,7 +19,7 @@ public class ScheduledTasks
         log.info("Used Ram: {}.  Free Ram: {}", humanReadableByteCount(allocatedMemory, false), humanReadableByteCount(presumableFreeMemory, false));
     }
 
-    public static String humanReadableByteCount(long bytes, boolean si)
+    private static String humanReadableByteCount(long bytes, boolean si)
     {
         int unit = si ? 1000 : 1024;
         if (bytes < unit) return bytes + " B";

@@ -1,6 +1,7 @@
 buildscript {
     ext {
-        springBootVersion = '2.1.0.RELEASE'
+        springBootVersion = '2.2.5.RELEASE'
+        postgresqlVersion = '42.2.11'
     }
     repositories {
         mavenCentral()
@@ -10,18 +11,18 @@ buildscript {
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-        classpath 'nu.studer:gradle-jooq-plugin:3.0.2'
-        classpath 'org.postgresql:postgresql:42.2.5'
-        classpath "gradle.plugin.com.boxfuse.client:gradle-plugin-publishing:5.2.1"
-        classpath "gradle.plugin.com.gorylenko.gradle-git-properties:gradle-git-properties:2.0.0"
-
-        // required since they were dropped in jdk9, may be able to remove after jooq 3.12?
-        classpath 'com.sun.xml.bind:jaxb-core:2.3.0.1'
-        classpath 'com.sun.xml.bind:jaxb-impl:2.3.0.1'
-        classpath 'javax.activation:activation:1.1.1'
-        classpath 'javax.xml.bind:jaxb-api:2.3.0'
+        classpath "org.postgresql:postgresql:${postgresqlVersion}"
     }
 }
+
+plugins {
+    id 'com.github.ben-manes.versions' version '0.28.0'
+    id "org.flywaydb.flyway" version "6.3.2"
+    id 'nu.studer.jooq' version '4.1'
+    id 'com.google.cloud.tools.jib' version '2.1.0'
+    id "com.gorylenko.gradle-git-properties" version "2.2.2"
+}
+jib.to.image = 'ehicks05/tab-hunter'
 
 configurations {
     developmentOnly
@@ -44,18 +45,35 @@ apply plugin: "com.gorylenko.gradle-git-properties"
 group = 'com.hicks-team'
 version = '0.0.1-SNAPSHOT'
 
-sourceCompatibility = 11
-targetCompatibility = 11
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+jib {
+    to {
+        image = 'registry.hub.docker.com/ehicks05/tab-hunter'
+        auth {
+            username = "${dockerHubUsername}" // Defined in 'gradle.properties'.
+            password = "${dockerHubPassword}"
+        }
+    }
+    container {
+        ports = ['8083']
+    }
+}
 
 repositories {
     mavenCentral()
 }
 
-ext['springBootAdminVersion'] = '2.1.2'
+ext {
+    set('springBootAdminVersion', '2.2.2')
+    set('springCloudVersion', "Hoxton.SR3")
+}
 
 dependencies {
     implementation('org.springframework.boot:spring-boot-starter-jdbc')
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
     implementation('org.springframework.boot:spring-boot-starter-jersey')
     implementation('org.springframework.boot:spring-boot-starter-web')
@@ -65,29 +83,23 @@ dependencies {
 
 //    implementation('org.springframework.boot:spring-boot-starter-jooq')
     implementation 'org.jooq:jooq'
-    implementation "org.flywaydb:flyway-core:5.2.1"
-    implementation 'org.postgresql:postgresql:42.2.5'
-    jooqRuntime 'org.postgresql:postgresql:42.2.5'
+    implementation "org.flywaydb:flyway-core:6.3.2"
+    implementation "org.postgresql:postgresql:${postgresqlVersion}"
+    jooqRuntime "org.postgresql:postgresql:${postgresqlVersion}"
 
-    // required since they were dropped in jdk9, may be able to remove after jooq 3.12?
-    jooqRuntime 'javax.activation:activation:1.1.1'
-    jooqRuntime 'javax.xml.bind:jaxb-api:2.3.0'
-    jooqRuntime 'com.sun.xml.bind:jaxb-core:2.3.0.1'
-    jooqRuntime 'com.sun.xml.bind:jaxb-impl:2.3.0.1'
-
-    implementation 'org.apache.tomcat.embed:tomcat-embed-jasper'
-    implementation 'javax.servlet.jsp:javax.servlet.jsp-api:2.3.3'
-    implementation 'javax.servlet:jstl'
+    implementation 'org.springframework.cloud:spring-cloud-starter-config'
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
 
     testImplementation("junit:junit")
-    testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation("org.springframework.security:spring-security-test")
 }
 
-ext['jooq.version'] = '3.11.7'
+ext['jooq.version'] = '3.13.1'
 
 jooq {
-    version = '3.11.7'
+    version = '3.13.1'
     edition = 'OSS'
 
     tab(sourceSets.main) {
@@ -109,13 +121,13 @@ jooq {
                 forcedTypes {
                     forcedType {
                         name = 'varchar'
-                        expression = '.*'
-                        types = 'JSONB?'
+                        includeExpression = '.*'
+                        includeTypes = 'JSONB?'
                     }
                     forcedType {
                         name = 'varchar'
-                        expression = '.*'
-                        types = 'INET'
+                        includeExpression = '.*'
+                        includeTypes = 'INET'
                     }
                 }
             }
@@ -154,5 +166,6 @@ bootJar {
 dependencyManagement {
     imports {
         mavenBom "de.codecentric:spring-boot-admin-dependencies:${springBootAdminVersion}"
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
     }
 }
