@@ -8,10 +8,9 @@ import org.jooq.DSLContext;
 import org.jooq.OrderField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Configuration;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.hicksteam.tab.db.gen.tables.Tab.TAB;
@@ -40,7 +39,7 @@ public class TabLogic
             tab.setArtist(artist);
             tab.setName(name);
             tab.setContent(content);
-            tab.setCreatedOn(new Timestamp(System.currentTimeMillis()));
+            tab.setCreatedOn(LocalDateTime.now());
             tab.setRating(rating);
             tab.setNumberRates(numberRates);
             tab.setType(type);

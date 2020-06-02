@@ -1,7 +1,7 @@
 buildscript {
     ext {
-        springBootVersion = '2.2.5.RELEASE'
-        postgresqlVersion = '42.2.11'
+        springBootVersion = '2.3.0.RELEASE'
+        postgresqlVersion = '42.2.12'
     }
     repositories {
         mavenCentral()
@@ -17,21 +17,9 @@ buildscript {
 
 plugins {
     id 'com.github.ben-manes.versions' version '0.28.0'
-    id "org.flywaydb.flyway" version "6.3.2"
-    id 'nu.studer.jooq' version '4.1'
-    id 'com.google.cloud.tools.jib' version '2.1.0'
+    id "org.flywaydb.flyway" version "6.4.3"
+    id 'nu.studer.jooq' version '4.2'
     id "com.gorylenko.gradle-git-properties" version "2.2.2"
-}
-jib.to.image = 'ehicks05/tab-hunter'
-
-configurations {
-    developmentOnly
-    runtimeClasspath {
-        extendsFrom developmentOnly
-    }
-}
-dependencies {
-    developmentOnly("org.springframework.boot:spring-boot-devtools")
 }
 
 apply plugin: 'java'
@@ -50,26 +38,13 @@ java {
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-jib {
-    to {
-        image = 'registry.hub.docker.com/ehicks05/tab-hunter'
-        auth {
-            username = "${dockerHubUsername}" // Defined in 'gradle.properties'.
-            password = "${dockerHubPassword}"
-        }
-    }
-    container {
-        ports = ['8083']
-    }
-}
-
 repositories {
     mavenCentral()
 }
 
 ext {
-    set('springBootAdminVersion', '2.2.2')
-    set('springCloudVersion', "Hoxton.SR3")
+    set('springBootAdminVersion', '2.2.3')
+    set('springCloudVersion', "Hoxton.SR5")
 }
 
 dependencies {
@@ -81,9 +56,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation 'de.codecentric:spring-boot-admin-starter-client'
 
-//    implementation('org.springframework.boot:spring-boot-starter-jooq')
-    implementation 'org.jooq:jooq'
-    implementation "org.flywaydb:flyway-core:6.3.2"
+    implementation('org.springframework.boot:spring-boot-starter-jooq')
+//    implementation 'org.jooq:jooq'
+    implementation "org.flywaydb:flyway-core:6.4.3"
     implementation "org.postgresql:postgresql:${postgresqlVersion}"
     jooqRuntime "org.postgresql:postgresql:${postgresqlVersion}"
 
@@ -92,6 +67,7 @@ dependencies {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }
 
+    developmentOnly("org.springframework.boot:spring-boot-devtools")
     testImplementation("junit:junit")
     testImplementation("org.springframework.security:spring-security-test")
 }
